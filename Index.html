@@ -1,47 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Khata Mitra Pro</title>
 
 <link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 
 <body>
 
-<h1>📒 Khata Mitra Pro</h1>
+<header>
+  <h2>📒 Khata Mitra</h2>
 
-<!-- Add Customer -->
+  <button onclick="toggleDark()">🌙</button>
+  <button onclick="setLang('hi')">हिं</button>
+  <button onclick="setLang('en')">EN</button>
+</header>
+
+<!-- ADD CUSTOMER -->
 <div class="card">
   <h3>Add Customer</h3>
-  <input id="name" placeholder="Name">
-  <input id="phone" placeholder="Phone">
-  <input id="gst" placeholder="GST">
-  <button onclick="addCustomer()">Add</button>
+
+  <input id="c_name" placeholder="Name">
+  <input id="c_phone" placeholder="Phone">
+  <input id="c_gst" placeholder="GST">
+
+  <select id="c_type">
+    <option value="customer">Customer</option>
+    <option value="supplier">Supplier</option>
+  </select>
+
+  <input id="c_city" placeholder="City">
+  <input id="c_state" placeholder="State">
+  <input id="c_pin" placeholder="Pincode">
+
+  <textarea id="c_address" placeholder="Address"></textarea>
+
+  <button onclick="addCustomer()">Save</button>
 </div>
 
-<!-- Customer List -->
-<div id="customers"></div>
+<!-- CUSTOMER LIST -->
+<div id="customerList"></div>
 
-<!-- Transaction -->
+<!-- TRANSACTION -->
 <div class="card">
-  <h3>Add Transaction</h3>
-  <select id="customerSelect"></select>
-  <input id="amount" type="number" placeholder="Amount">
-  <select id="type">
+  <h3>Add Entry</h3>
+
+  <select id="t_customer"></select>
+
+  <input id="t_amount" type="number" placeholder="Amount">
+
+  <select id="t_type">
     <option value="udhar">Udhar</option>
     <option value="jama">Jama</option>
   </select>
+
+  <input id="t_item" placeholder="Item Name">
+  <input id="t_date" type="date">
+  <input id="t_image" type="file">
+
   <button onclick="addTransaction()">Save</button>
 </div>
 
-<!-- Transactions -->
-<div id="transactions"></div>
+<!-- HISTORY -->
+<div id="history"></div>
 
-<script src="utils.js"></script>
+<!-- GRAPH -->
+<canvas id="chart"></canvas>
+
+<script src="storage.js"></script>
+<script src="ui.js"></script>
 <script src="app.js"></script>
 
 </body>
