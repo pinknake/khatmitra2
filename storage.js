@@ -1,14 +1,12 @@
-function saveData(data) {
+function save(data){
   localStorage.setItem("khata", JSON.stringify(data));
 }
 
-function loadData() {
+function load(){
   return JSON.parse(localStorage.getItem("khata")) || {
     customers: [],
-    transactions: []
+    transactions: [],
+    lang: 'hi',
+    dark: false
   };
-}
-
-function formatDate() {
-  return new Date().toLocaleDateString();
 }
