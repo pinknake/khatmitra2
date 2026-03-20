@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Khata Mitra Pro</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{font-family:sans-serif;background:#f5f5f5;margin:0;padding:10px}
+.dark{background:#121212;color:white}
+.card{background:white;padding:10px;margin:10px 0;border-radius:10px}
+.dark .card{background:#1e1e1e}
+input,select{width:100%;padding:8px;margin:5px 0}
+button{padding:8px;background:#6a1b9a;color:white;border:none;border-radius:5px}
+.item{background:#fff;padding:10px;margin:5px 0;border-radius:8px}
+.dark .item{background:#2a2a2a}
+.delete{color:red;float:right}
+.header{display:flex;justify-content:space-between;background:#6a1b9a;color:white;padding:10px;border-radius:10px}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<h3>📒 Khata Mitra Pro</h3>
+<div>
+<button onclick="toggleDark()">🌙</button>
+</div>
+</div>
+
+<div class="card">
+<h3>Add Customer</h3>
+<input id="name" placeholder="Name">
+<input id="phone" placeholder="Phone">
+<input id="gst" placeholder="GST">
+<input id="city" placeholder="City">
+<input id="state" placeholder="State">
+<input id="pin" placeholder="Pincode">
+<input id="address" placeholder="Address">
+<button onclick="addCustomer()">Save</button>
+</div>
+
+<div id="customers"></div>
+
+<div class="card">
+<h3>Add Entry</h3>
+<select id="cust"></select>
+<input id="amt" type="number" placeholder="Amount">
+<select id="type">
+<option value="udhar">Udhar</option>
+<option value="jama">Jama</option>
+</select>
+<input id="item" placeholder="Item">
+<input id="date" type="date">
+<input id="img" type="file">
+<button onclick="addTx()">Save</button>
+</div>
+
+<div id="history"></div>
+
+<canvas id="chart"></canvas>
+
+<script>
+
+let data=JSON.parse(localStorage.getItem("khata"))||{customers:[],tx:[]}
+
+function save(){localStorage.setItem("khata",JSON.stringify(data))}
+
+function render(){
+
+let chtml="",opt=""
+
+data.customers.forEach(c=>{
+chtml+=`
+<div class="item" onclick="openC(${c.id})">
+<b>${c.name}</b><br>
+📍 ${c.city},${c.state}<br>
+💰 ₹${c.balance||0}
+</div>`
+opt+=`<option value="${c.id}">${c.name}</option>`
+})
+
+customers.innerHTML=chtml
+cust.innerHTML=opt
+
+let h=""
+data.tx.slice().reverse().forEach(t=>{
+let c=data.customers.find(x=>x.id==t.cid)
+h+=`
+<div class="item">
+${c.name} - ${t.type} ₹${t.amt}
+<br>${t.item||""} | ${t.date}
+${t.img?`<br><img src="${t.img}" width="80">`:""}
+<span class="delete" onclick="del(${t.id})">❌</span>
+</div>`
+})
+
+history.innerHTML=h
+
+draw()
+
+save()
+}
+
+function addCustomer(){
+data.customers.push({
+id:Date.now(),
+name:name.value,
+phone:phone.value,
+gst:gst.value,
+city:city.value,
+state:state.value,
+pin:pin.value,
+address:address.value,
+balance:0
+})
+render()
+}
+
+function addTx(){
+
+let id=cust.value
+let amt=parseFloat(amtInput())
+let typeVal=type.value
+
+let c=data.customers.find(x=>x.id==id)
+
+if(typeVal=="udhar")c.balance+=amt
+else c.balance-=amt
+
+let file=img.files[0]
+
+if(file){
+let r=new FileReader()
+r.onload=e=>{
+saveTx(e.target.result)
+}
+r.readAsDataURL(file)
+}else saveTx("")
+
+function saveTx(imgData){
+data.tx.push({
+id:Date.now(),
+cid:id,
+amt:amt,
+type:typeVal,
+item:item.value,
+date:date.value,
+img:imgData
+})
+render()
+}
+}
+
+function amtInput(){return document.getElementById("amt").value}
+
+function del(id){
+let t=data.tx.find(x=>x.id==id)
+let c=data.customers.find(x=>x.id==t.cid)
+
+if(t.type=="udhar")c.balance-=t.amt
+else c.balance+=t.amt
+
+data.tx=data.tx.filter(x=>x.id!=id)
+render()
+}
+
+function openC(id){
+
+let c=data.customers.find(x=>x.id==id)
+
+let html=`
+<div class="card">
+<h2>${c.name}</h2>
+<p>📞 ${c.phone}</p>
+<p>GST: ${c.gst}</p>
+<p>${c.address}</p>
+<p>${c.city},${c.state}-${c.pin}</p>
+<h3>₹${c.balance}</h3>
+`
+
+let tx=data.tx.filter(t=>t.cid==id)
+
+tx.reverse().forEach(t=>{
+html+=`
+<div class="item">
+${t.type} ₹${t.amt}
+<br>${t.item} | ${t.date}
+${t.img?`<br><img src="${t.img}" width="80">`:""}
+<span class="delete" onclick="del(${t.id})">❌</span>
+</div>`
+})
+
+html+=`<button onclick="render()">⬅ Back</button></div>`
+
+customers.innerHTML=html
+}
+
+function draw(){
+let u=0,j=0
+data.tx.forEach(t=>{
+if(t.type=="udhar")u+=t.amt
+else j+=t.amt
+})
+
+new Chart(chart,{
+type:"bar",
+data:{labels:["Udhar","Jama"],datasets:[{data:[u,j]}]}
+})
+}
+
+function toggleDark(){
+document.body.classList.toggle("dark")
+}
+
+render()
+
+</script>
+
+</body>
+</html>
