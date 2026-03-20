@@ -1,94 +1,111 @@
-let app = loadData();
+let app = load();
 
-function render() {
-  // Customers
+function render(){
+
+  // CUSTOMER LIST
   let cHTML = "";
-  let selectHTML = "";
+  let select = "";
 
-  app.customers.forEach(c => {
+  app.customers.forEach(c=>{
     cHTML += `
-      <div class="customer">
-        ${c.name} (${c.phone}) 
-        <b>₹${c.balance}</b>
-      </div>
-    `;
-    selectHTML += `<option value="${c.id}">${c.name}</option>`;
+    <div class="item">
+      ${c.name} (${c.type})
+      <br>📍 ${c.city}
+      <b>₹${c.balance}</b>
+    </div>`;
+    select += `<option value="${c.id}">${c.name}</option>`;
   });
 
-  document.getElementById("customers").innerHTML = cHTML;
-  document.getElementById("customerSelect").innerHTML = selectHTML;
+  document.getElementById("customerList").innerHTML = cHTML;
+  document.getElementById("t_customer").innerHTML = select;
 
-  // Transactions
-  let tHTML = "";
+  // HISTORY
+  let h = "";
 
-  app.transactions.slice().reverse().forEach(t => {
-    const c = app.customers.find(x => x.id == t.customerId);
+  app.transactions.slice().reverse().forEach(t=>{
+    let c = app.customers.find(x=>x.id==t.customerId);
 
-    tHTML += `
-      <div class="customer">
-        ${c.name} - ${t.type} ₹${t.amount}
-        <span class="delete" onclick="deleteTransaction('${t.id}')">❌</span>
-      </div>
-    `;
+    h += `
+    <div class="item">
+      ${c.name} - ${t.type} ₹${t.amount}
+      <br>${t.item} | ${t.date}
+      <span class="delete" onclick="del('${t.id}')">❌</span>
+    </div>`;
   });
 
-  document.getElementById("transactions").innerHTML = tHTML;
+  document.getElementById("history").innerHTML = h;
 
-  saveData(app);
+  save(app);
+  drawChart();
 }
 
-function addCustomer() {
-  const name = document.getElementById("name").value;
-  const phone = document.getElementById("phone").value;
-  const gst = document.getElementById("gst").value;
-
+function addCustomer(){
   app.customers.push({
     id: Date.now(),
-    name,
-    phone,
-    gst,
+    name: c_name.value,
+    phone: c_phone.value,
+    gst: c_gst.value,
+    type: c_type.value,
+    city: c_city.value,
+    state: c_state.value,
+    pin: c_pin.value,
+    address: c_address.value,
     balance: 0
   });
-
   render();
 }
 
-function addTransaction() {
-  const id = document.getElementById("customerSelect").value;
-  const amount = parseFloat(document.getElementById("amount").value);
-  const type = document.getElementById("type").value;
+function addTransaction(){
 
-  const customer = app.customers.find(c => c.id == id);
+  let id = t_customer.value;
+  let amt = parseFloat(t_amount.value);
+  let type = t_type.value;
 
-  if (type === "udhar") {
-    customer.balance += amount;
-  } else {
-    customer.balance -= amount;
-  }
+  let c = app.customers.find(x=>x.id==id);
+
+  if(type=="udhar") c.balance += amt;
+  else c.balance -= amt;
 
   app.transactions.push({
     id: Date.now(),
     customerId: id,
-    amount,
+    amount: amt,
     type,
-    date: formatDate()
+    item: t_item.value,
+    date: t_date.value
   });
 
   render();
 }
 
-function deleteTransaction(id) {
-  const t = app.transactions.find(x => x.id == id);
-  const customer = app.customers.find(c => c.id == t.customerId);
+function del(id){
+  let t = app.transactions.find(x=>x.id==id);
+  let c = app.customers.find(x=>x.id==t.customerId);
 
-  if (t.type === "udhar") {
-    customer.balance -= t.amount;
-  } else {
-    customer.balance += t.amount;
-  }
+  if(t.type=="udhar") c.balance -= t.amount;
+  else c.balance += t.amount;
 
-  app.transactions = app.transactions.filter(x => x.id != id);
+  app.transactions = app.transactions.filter(x=>x.id!=id);
   render();
+}
+
+function drawChart(){
+  let ctx = document.getElementById("chart");
+
+  let udhar=0, jama=0;
+
+  app.transactions.forEach(t=>{
+    if(t.type=="udhar") udhar+=t.amount;
+    else jama+=t.amount;
+  });
+
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['Udhar','Jama'],
+      datasets:[{data:[udhar,jama]}]
+    }
+  });
 }
 
 render();
